@@ -67,6 +67,9 @@ const callGemini = async (queryText) => {
 // @param queryText - the farmer's question
 // @returns { answer, category, needsExpertReview }
 export const getAIResponse = async (queryText) => {
+  console.log("AI START:", queryText);
+// ...existing Gemini call...
+console.log("AI DONE");
   try {
     // Prefer OpenAI if configured, fall back to Gemini — lets you swap
     // providers via .env without touching controller code

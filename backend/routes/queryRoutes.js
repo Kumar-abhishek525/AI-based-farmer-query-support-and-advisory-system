@@ -1,9 +1,10 @@
 // backend/routes/queryRoutes.js
+import { upload } from "../middleware/upload.js";
+import { askQuery } from "../controllers/queryController.js";
 import express from "express";
 import multer from "multer";
 import path from "path";
 import {
-  askQuery,
   detectImageDisease,
   getQueryHistory,
 } from "../controllers/queryController.js";
@@ -20,16 +21,16 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only image files are allowed."));
-    }
-    cb(null, true);
-  },
-});
+// const upload = multer({
+//   storage,
+//   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+//   fileFilter: (req, file, cb) => {
+//     if (!file.mimetype.startsWith("image/")) {
+//       return cb(new Error("Only image files are allowed."));
+//     }
+//     cb(null, true);
+//   },
+// });
 
 router.post("/ask", protect, askQuery);
 router.post("/image-detect", protect, upload.single("image"), detectImageDisease);

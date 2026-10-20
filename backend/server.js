@@ -24,10 +24,12 @@ connectDB();
 // --- Core middleware ---
 app.use(cors()); // for the demo, allow all origins; restrict to your frontend URL in production
 app.use(express.json());
+app.use("/api/query", queryRoutes); 
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded crop images statically so the frontend can display them
-// via <img src="http://localhost:5000/uploads/xyz.jpg" />
+// // via 
+// <img src="http://localhost:5000/uploads/xyz.jpg" />
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // --- Health check (useful for quick sanity checks / deployment platforms) ---

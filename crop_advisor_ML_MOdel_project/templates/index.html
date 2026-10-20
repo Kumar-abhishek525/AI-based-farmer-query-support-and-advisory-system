@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>फसल पत्ती सलाहकार</title>
+<style>
+  body{font-family:system-ui,Arial,sans-serif;background:#f1f8f1;margin:0;color:#1b3a1b}
+  .wrap{max-width:520px;margin:0 auto;padding:20px}
+  h1{font-size:1.4rem;text-align:center}
+  .card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.1);margin-top:14px}
+  input[type=file]{width:100%;margin:8px 0}
+  button{width:100%;padding:12px;font-size:1rem;background:#2e7d32;color:#fff;border:0;border-radius:8px;cursor:pointer}
+  button:disabled{background:#9bbf9d}
+  img{max-width:100%;border-radius:8px;margin-top:8px}
+  .warn{background:#fff4e5;border-left:4px solid #f59e0b;padding:8px;margin-top:8px;border-radius:4px}
+  .err{color:#b00020}
+  small{color:#555}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🌿 फसल पत्ती सलाहकार</h1>
+  <div class="card">
+    <label>भाषा / Language:</label>
+    <select id="lang" style="width:100%;padding:8px;margin:6px 0 10px"><option value="hi">हिन्दी</option><option value="en">English</option></select>
+    <label id="lbl">एक पत्ती की पास से साफ़ फोटो लें या चुनें:</label>
+    <input type="file" id="file" accept="image/*" capture="environment">
+    <img id="preview" style="display:none">
+    <button id="btn" disabled>मेरा पौधा जाँचें</button>
+  </div>
+  <div class="card" id="result" style="display:none"></div>
+</div>
+<script>
+const TXT = {
+  hi: {check:"मेरा पौधा जाँचें", checking:"जाँच हो रही है...", sure:"निश्चित", problem:"समस्या:", todo:"क्या करें:", server:"सर्वर से संपर्क नहीं हो पाया।", lbl:"एक पत्ती की पास से साफ़ फोटो लें या चुनें:"},
+  en: {check:"Check my plant", checking:"Checking...", sure:"sure", problem:"Problem:", todo:"What to do:", server:"Could not reach the server.", lbl:"Take or choose a close-up photo of one leaf:"}
+};
+const langSel = document.getElementById("lang");
+const L = () => TXT[langSel.value];
+langSel.onchange = () => { document.getElementById("lbl").textContent = L().lbl; btn.textContent = L().check; };
+const file = document.getElementById("file"), btn = document.getElementById("btn"),
+      preview = document.getElementById("preview"), result = document.getElementById("result");
+file.onchange = () => {
+  if (!file.files[0]) return;
+  preview.src = URL.createObjectURL(file.files[0]); preview.style.display = "block";
+  btn.disabled = false; result.style.display = "none";
+};
+btn.onclick = async () => {
+  btn.disabled = true; btn.textContent = L().checking;
+  const fd = new FormData(); fd.append("image", file.files[0]); fd.append("lang", langSel.value);
+  result.style.display = "block";
+  try {
+    const r = await fetch("/predict", {method: "POST", body: fd});
+    const d = await r.json();
+    if (!r.ok) { result.innerHTML = `<p class="err">${d.error}</p>`; }
+    else if (d.status !== "ok") {
+      result.innerHTML = `<div class="warn">${d.message}</div>`;
+    } else {
+      result.innerHTML = `
+        <h3>${d.prediction} <small>(${d.confidence}% ${L().sure})</small></h3>
+        <p><b>${L().problem}</b> ${d.problem}</p>
+        <p><b>${L().todo}</b> ${d.advice}</p>
+        <small>${d.note}</small>`;
+    }
+  } catch (e) { result.innerHTML = `<p class="err">${L().server}</p>`; }
+  btn.disabled = false; btn.textContent = L().check;
+};
+</script>
+</body>
+</html>

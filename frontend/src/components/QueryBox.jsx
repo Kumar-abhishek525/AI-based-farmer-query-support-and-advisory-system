@@ -5,15 +5,22 @@ import api from "../services/api";
 
 const QueryBox = ({ onNewResponse }) => {
   const [queryText, setQueryText] = useState("");
+  const [language, setLanguage] = useState("en"); // "en" | "hi"
   const [isListening, setIsListening] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const recognitionRef = useRef(null);
 
+  // Detects Hindi by checking for Devanagari script characters
+const detectLanguage = (text) => {
+  const isHindi = /[\u0900-\u097F]/.test(text);
+  return isHindi ? "hi" : "en";
+};
+
   // Voice input using the browser's Web Speech API (no extra library needed)
   const startListening = () => {
     const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+      window.SpeechRecognition || window.webkitSpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       setError("Voice input isn't supported in this browser. Try Chrome.");
@@ -21,7 +28,7 @@ const QueryBox = ({ onNewResponse }) => {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = "en-IN"; // change to "hi-IN" for Hindi
+   recognition.lang = language === "hi" ? "hi-IN" : "en-IN";   // change to "hi-IN" for Hindi
     recognition.continuous = false;
     recognition.interimResults = false;
 
@@ -46,27 +53,28 @@ const QueryBox = ({ onNewResponse }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!queryText.trim()) return;
+  e.preventDefault();
+  if (!queryText.trim()) return;
 
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
-      const res = await api.post("/query/ask", {
-        queryText,
-        queryType: "text",
-      });
-      onNewResponse?.(res.data); // pass the AI response up to the parent/dashboard
-      setQueryText("");
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Something went wrong. Try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const detectedLang = detectLanguage(queryText); // auto-detect from actual text
+
+  try {
+    const res = await api.post("/query/ask", {
+      queryText,
+      queryType: "text",
+      language: detectedLang, // matches whatever script the farmer actually used
+    });
+    onNewResponse?.(res.data);
+    setQueryText("");
+  } catch (err) {
+    setError(err.response?.data?.message || "Something went wrong. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <form

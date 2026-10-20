@@ -1,44 +1,39 @@
-// backend/services/mlService.js
 import axios from "axios";
-import fs from "fs";
 import FormData from "form-data";
-import { ML_SERVICE_URL } from "../config/env.js";
+import fs from "fs";
 
-// Forwards the uploaded image to your Python microservice (FastAPI/Flask)
-// running the trained crop-disease CNN model at ai-service/app.py
-// @param imagePath - local file path from multer (req.file.path)
-// @returns { disease, confidence, cropType, treatment, severity }
-export const detectDisease = async (imagePath) => {
+const ML_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
+
+export const predictDisease = async (file, lang = "hi") => {
+  if (!file) throw new Error("No image file received");
+
+  // works with both memoryStorage (buffer) and diskStorage (path)
+  const imageData = file.buffer ?? fs.readFileSync(file.path);
+
+  const form = new FormData();
+  form.append("image", imageData, {
+    filename: file.originalname,
+    contentType: file.mimetype,
+  });
+  form.append("lang", lang);
+
   try {
-    const form = new FormData();
-    form.append("file", fs.createReadStream(imagePath));
-
-    const res = await axios.post(`${ML_SERVICE_URL}/predict`, form, {
+    const { data } = await axios.post(`${ML_URL}/predict`, form, {
       headers: form.getHeaders(),
-      timeout: 15000,
+      timeout: 30000,
+      maxBodyLength: Infinity,
     });
-
-    // Shape this to match whatever your Python service actually returns —
-    // adjust field names here once ai-service/app.py is built
-    const { disease, confidence, crop_type, treatment, severity } = res.data;
-
-    return {
-      disease: disease || "Unknown",
-      confidence: confidence ?? 0,
-      cropType: crop_type || "Unknown",
-      treatment: treatment || "No treatment suggestion available. Please consult an expert.",
-      severity: severity || "moderate",
-    };
-  } catch (error) {
-    console.error("ML service error:", error.response?.data || error.message);
-    // Graceful fallback so a down/unbuilt ML service doesn't crash the request —
-    // this also lets you demo the full flow before the Python model is finished
-    return {
-      disease: "Unable to determine",
-      confidence: 0,
-      cropType: "Unknown",
-      treatment: "Detection service is currently unavailable. This has been sent to an expert.",
-      severity: "moderate",
-    };
+    return data;
+  } catch (err) {
+    if (err.code === "ECONNREFUSED") {
+      throw new Error("Model service is not running on " + ML_URL);
+    }
+    if (err.response?.data?.error) {
+      throw new Error(err.response.data.error);
+    }
+    throw err;
+  } finally {
+    // delete the temporary photo saved by diskStorage
+    if (file.path) fs.unlink(file.path, () => {});
   }
 };
