@@ -14,23 +14,37 @@ const QueryHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!user) return;
+  // useEffect(() => {
+  //   if (!user) return;
 
-    const fetchHistory = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get(`/query/history/${user.id}`);
-        setHistory(res.data);
-      } catch (err) {
-        setError("Couldn't load your query history.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  //   const fetchHistory = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const res = await api.get(`/query/history/${user.id}`);
+  //       setHistory(res.data);
+  //     } catch (err) {
+  //       setError("Couldn't load your query history.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchHistory();
-  }, [user]);
+  //   fetchHistory();
+  // }, [user]);
+
+ useEffect(() => {
+  if (!user) return;
+  const userId = user._id || user.id;
+
+  setLoading(true);
+  api.get(`/queries/history/${userId}`)
+    .then((res) => setHistory(res.data))
+    .catch((err) => {
+      console.log(err);                 // full error, not just err.response
+      setError("Couldn't load your query history.");
+    })
+    .finally(() => setLoading(false));
+}, [user]);
 
   const filtered =
     filter === "all" ? history : history.filter((q) => q.category === filter);

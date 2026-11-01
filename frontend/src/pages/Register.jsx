@@ -21,25 +21,28 @@ const Register = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await api.post("/auth/register", {
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        phone: form.phone,
-        role: form.role,
-        location: { state: form.state, district: form.district },
-      });
-      navigate("/login");
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setError("");
+  setLoading(true);
+  try {
+    await api.post("/auth/register", {
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      phone: form.phone,
+      role: form.role,
+      location: { state: form.state, district: form.district },
+    });
+    navigate("/login");
+  } catch (err) {
+    console.log("REGISTER ERROR:", err.response?.status, err.response?.data);
+    const data = err.response?.data;
+    setError(data?.error || data?.message || "Registration failed.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-green-50 px-4 py-10">

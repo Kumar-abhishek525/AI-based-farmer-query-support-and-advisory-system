@@ -19,10 +19,10 @@ const Navbar = () => {
     if (!user) return [];
     if (user.role === "farmer") {
       return [
-        { name: "Dashboard", path: "/dashboard" },
-        { name: "Ask a Query", path: "/query" },
+        { name: "Home", path: "/query" },
+        { name: "Ask a Query", path: "/dashboard" },
         { name: "History", path: "/history" },
-        { name: "Advisory", path: "/advisory" },
+        // { name: "Advisory", path: "/advisory" },
       ];
     }
     if (user.role === "expert") {
