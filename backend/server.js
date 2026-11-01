@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import { PORT, NODE_ENV } from "./config/env.js";
-
+import "dotenv/config";
 import authRoutes from "./routes/authRoutes.js";
 import queryRoutes from "./routes/queryRoutes.js";
 import advisoryRoutes from "./routes/advisoryRoutes.js";
@@ -43,7 +43,7 @@ app.use("/api/query", queryRoutes);
 app.use("/api/advisory", advisoryRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/queries", queryRoutes);
 // --- Error handling (must be last) ---
 app.use(notFound);
 app.use(errorHandler);

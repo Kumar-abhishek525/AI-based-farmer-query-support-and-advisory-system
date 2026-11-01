@@ -33,8 +33,11 @@ export const register = async (req, res) => {
       location,
     });
 
-    const token = generateToken(user._id);
-    res.status(201).json({ user, token });
+    const { password: _pw, ...safeUser } = user.toObject();
+res.status(201).json({ user: safeUser, token });
+
+    // const token = generateToken(user._id);
+    // res.status(201).json({ user, token });
   } catch (error) {
     res.status(500).json({ message: "Registration failed.", error: error.message });
   }

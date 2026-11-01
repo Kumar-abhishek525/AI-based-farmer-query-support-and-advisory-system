@@ -1,12 +1,12 @@
 // backend/routes/queryRoutes.js
 import { upload } from "../middleware/upload.js";
 import { askQuery } from "../controllers/queryController.js";
+import { getQueryHistory } from "../controllers/queryController.js";
 import express from "express";
 import multer from "multer";
 import path from "path";
 import {
-  detectImageDisease,
-  getQueryHistory,
+  detectImageDisease
 } from "../controllers/queryController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
