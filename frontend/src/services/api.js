@@ -33,7 +33,8 @@
 import axios, { Axios } from "axios";
 
 const api = axios.create({
-      baseURL:"http://localhost:5000/api"
+    //   baseURL:"http://localhost:5000/api"
+    baseURL:"https://ai-based-farmer-query-support-and-knu2.onrender.com/"
 });
 
 api.interceptors.request.use((config)=>{
